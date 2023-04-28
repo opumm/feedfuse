@@ -1,0 +1,26 @@
+[tool.poetry]
+name = "feedfuse"
+version = "0.1.0"
+description = "Services for aggregating and managing RSS feeds"
+authors = ["Mohammad Mohiuddin <opummjopu@gmail.com>"]
+
+[tool.poetry.dependencies]
+python = "^3.10"
+fastapi = "^0.95.1"
+uvicorn = "^0.21.1"
+pydantic = {extras = ["email"], version = "^1.10.7"}
+SQLAlchemy = {extras = ["asyncio"], version = "^2.0.10"}
+alembic = "^1.10.4"
+passlib = {extras = ["bcrypt"], version = "^1.7.4"}
+python-jose = {extras = ["cryptography"], version = "^3.3.0"}
+python-multipart = "^0.0.6"
+asyncpg = "^0.27.0"
+
+[tool.poetry.dev-dependencies]
+black = "^23.3.0"
+flake8 = "^6.0.0"
+isort = "^5.12.0"
+
+[build-system]
+requires = ["poetry-core>=1.0.0"]
+build-backend = "poetry.core.masonry.api"
