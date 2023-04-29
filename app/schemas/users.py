@@ -15,7 +15,8 @@ class CreateUserSchema(UserBaseSchema):
     password: str
 
 
-class UpdateUserSchema(UserBaseSchema):
+class UpdateUserSchema(BaseModel):
+    full_name: Optional[str] = None
     password: Optional[str] = None
 
 
