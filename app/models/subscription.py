@@ -1,6 +1,6 @@
 from typing import TYPE_CHECKING
 
-from sqlalchemy import Boolean, Column, ForeignKey, Integer
+from sqlalchemy import Boolean, Column, ForeignKey, Integer, UniqueConstraint
 from sqlalchemy.orm import relationship
 
 from app.db.base_class import Base
@@ -18,5 +18,6 @@ class Subscription(Base):
     user_id = Column(Integer, ForeignKey("user.id"))
     feed_id = Column(Integer, ForeignKey("feed.id"))
 
+    __table_args__ = (UniqueConstraint("user_id", "feed_id", name="unique_user_feed"),)
     subscription_user = relationship("User", back_populates="user_subscription")
     subscription_feed = relationship("Feed", back_populates="feed_subscription")

@@ -4,6 +4,7 @@ from typing import List
 from fastapi import APIRouter, Depends, status
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from app import crud
 from app.api.deps import get_current_user
 from app.db.session import get_async_session
 from app.models.users import User as DBUser
@@ -30,17 +31,9 @@ async def get_feeds(
     Returns:
         A list of FeedSchema objects containing the url and title of the subscribed feeds.
     """
-
-    return [
-        FeedSchema(
-            id=1,
-            url="https://example.com/rss",
-            title="New RSS feed",
-            description="A new RSS feed for testing purposes.",
-            is_update_enabled=True,
-            created_at=datetime.now(),
-        ),
-    ]
+    feeds_in_db = await crud.feeds.get_feed_by_user(session, user_id=current_user.id)
+    feeds = [FeedSchema.from_orm(feed) for feed in feeds_in_db]
+    return feeds
 
 
 @router.post(
@@ -50,7 +43,11 @@ async def get_feeds(
     summary="Create or subscribe to an RSS feed",
     status_code=status.HTTP_201_CREATED,
 )
-async def create_feed(feed: CreateFeedSchema) -> FeedSchema:
+async def create_feed(
+    feed: CreateFeedSchema,
+    session: AsyncSession = Depends(get_async_session),
+    current_user: DBUser = Depends(get_current_user),
+) -> FeedSchema:
     """
     Create a new RSS feed or subscribe to an existing one.
 
@@ -59,17 +56,32 @@ async def create_feed(feed: CreateFeedSchema) -> FeedSchema:
 
     Returns:
         A FeedSchema object containing the url and title of the created or subscribed feed.
+        :param current_user:
+        :param session:
         :param feed:
     """
-    # TODO: Implement the creation or subscription logic
-    return FeedSchema(
-        id=1,
-        url="https://example.com/rss",
-        title="New RSS feed",
-        description="A new RSS feed for testing purposes.",
-        is_update_enabled=True,
-        created_at=datetime.now(),
-    )
+
+    db_feed = await crud.feeds.get_feed_by_url(session, url=feed.url)
+    if db_feed:
+        db_subscription = await crud.subscription.get_subscription_by_user_and_feed(
+            session, feed_id=db_feed.id, user_id=current_user.id
+        )
+        if db_subscription:
+            if not db_subscription.is_active:
+                await crud.subscription.resubscribe(
+                    session, subscription_id=db_subscription.id
+                )
+        else:
+            await crud.subscription.create_subscription(
+                session, feed_id=db_feed.id, user_id=current_user.id
+            )
+    else:
+        db_feed = await crud.feeds.create_feed(session, feed)
+        await crud.subscription.create_subscription(
+            session, feed_id=db_feed.id, user_id=current_user.id
+        )
+
+    return FeedSchema.from_orm(db_feed)
 
 
 @router.get(
