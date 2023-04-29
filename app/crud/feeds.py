@@ -1,6 +1,5 @@
-from typing import List, Optional, Any
+from typing import List, Optional
 
-from sqlalchemy import Result
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.future import select
 from sqlalchemy.orm import selectinload
@@ -28,7 +27,11 @@ async def get_feed(
 
 
 async def get_feed_by_user(session: AsyncSession, user_id: int) -> List[Optional[Feed]]:
-    query = select(Feed).join(Subscription).where(Subscription.user_id == user_id, Subscription.is_active)
+    query = (
+        select(Feed)
+        .join(Subscription)
+        .where(Subscription.user_id == user_id, Subscription.is_active)
+    )
 
     feeds_in_db = await session.execute(query)
     return feeds_in_db.scalars().all()
