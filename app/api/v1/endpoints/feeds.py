@@ -2,7 +2,11 @@ from datetime import datetime
 from typing import List
 
 from fastapi import APIRouter, Depends, status
+from sqlalchemy.ext.asyncio import AsyncSession
 
+from app.api.deps import get_current_user
+from app.db.session import get_async_session
+from app.models.users import User as DBUser
 from app.schemas import CreateFeedSchema, FeedQueryParams, FeedSchema
 
 router = APIRouter()
@@ -15,7 +19,11 @@ router = APIRouter()
     summary="Get all feeds subscribed by the current user",
     status_code=status.HTTP_200_OK,
 )
-async def get_feeds(query: FeedQueryParams = Depends()) -> List[FeedSchema]:
+async def get_feeds(
+    query: FeedQueryParams = Depends(),
+    session: AsyncSession = Depends(get_async_session),
+    current_user: DBUser = Depends(get_current_user),
+) -> List[FeedSchema]:
     """
     Retrieve all feeds that the current user has subscribed to.
 

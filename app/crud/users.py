@@ -44,3 +44,14 @@ async def update_user(
     await session.commit()
     await session.refresh(db_user)
     return db_user
+
+
+async def authenticate(
+    session: AsyncSession, email: str, password: str
+) -> Optional[DBUser]:
+    db_user = await get_user_by_email(session, email)
+    if not db_user:
+        return None
+    if not db_user.verify_password(password):
+        return None
+    return db_user
