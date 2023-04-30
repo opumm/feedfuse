@@ -1,14 +1,14 @@
 from datetime import datetime
 from typing import List
 
-from fastapi import APIRouter, Depends, status
+from fastapi import APIRouter, Depends, status, HTTPException
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app import crud
 from app.api.deps import get_current_user
 from app.db.session import get_async_session
 from app.models.users import User as DBUser
-from app.schemas import CreateFeedSchema, FeedQueryParams, FeedSchema
+from app.schemas import CreateFeedSchema, FeedSchema
 
 router = APIRouter()
 
@@ -21,9 +21,8 @@ router = APIRouter()
     status_code=status.HTTP_200_OK,
 )
 async def get_feeds(
-    query: FeedQueryParams = Depends(),
-    session: AsyncSession = Depends(get_async_session),
-    current_user: DBUser = Depends(get_current_user),
+        session: AsyncSession = Depends(get_async_session),
+        current_user: DBUser = Depends(get_current_user),
 ) -> List[FeedSchema]:
     """
     Retrieve all feeds that the current user has subscribed to.
@@ -44,9 +43,9 @@ async def get_feeds(
     status_code=status.HTTP_201_CREATED,
 )
 async def create_feed(
-    feed: CreateFeedSchema,
-    session: AsyncSession = Depends(get_async_session),
-    current_user: DBUser = Depends(get_current_user),
+        feed: CreateFeedSchema,
+        session: AsyncSession = Depends(get_async_session),
+        current_user: DBUser = Depends(get_current_user),
 ) -> FeedSchema:
     """
     Create a new RSS feed or subscribe to an existing one.
@@ -91,7 +90,10 @@ async def create_feed(
     summary="Get a specific feed by its ID",
     status_code=status.HTTP_200_OK,
 )
-async def get_feed_by_id(feed_id: int) -> FeedSchema:
+async def get_feed_by_id(
+        feed_id: int,
+        session: AsyncSession = Depends(get_async_session)
+) -> FeedSchema:
     """
     Retrieve a specific feed by its ID.
 
@@ -100,16 +102,17 @@ async def get_feed_by_id(feed_id: int) -> FeedSchema:
 
     Returns:
         A FeedSchema object containing the url and title of the requested feed.
+        :param feed_id:
+        :param session:
     """
+    db_feed = await crud.feeds.get_feed(session, feed_id)
+    if not db_feed:
+        raise HTTPException(
+            status_code=404,
+            detail="Feed does not exist in the system",
+        )
 
-    return FeedSchema(
-        id=1,
-        url="https://example.com/rss",
-        title="New RSS feed",
-        description="A new RSS feed for testing purposes.",
-        is_update_enabled=True,
-        created_at=datetime.now(),
-    )
+    return FeedSchema.from_orm(db_feed)
 
 
 @router.delete(

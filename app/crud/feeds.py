@@ -17,7 +17,7 @@ async def create_feed(session: AsyncSession, feed: CreateFeedSchema) -> Feed:
 
 
 async def get_feed(
-    session: AsyncSession, feed_id: int, *, load_items: bool = False
+    session: AsyncSession, feed_id: int, load_items: bool = False
 ) -> Optional[Feed]:
     query = select(Feed).where(Feed.id == feed_id)
     if load_items:
@@ -44,9 +44,9 @@ async def get_feed_by_url(session: AsyncSession, url: str) -> Optional[Feed]:
 
 
 async def get_feeds(
-    session: AsyncSession, *, skip: int = 0, limit: int = 100
+    session: AsyncSession
 ) -> List[Feed]:
-    query = select(Feed).offset(skip).limit(limit)
+    query = select(Feed)
     result = await session.execute(query)
     return result.scalars().all()
 

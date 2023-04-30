@@ -37,7 +37,7 @@ class Settings(BaseSettings):
 
     WORKER_BROKER_DSN: AmqpDsn = "amqp://guest:guest@rabbitmq:5672"
     WORKER_BACKEND_DSN: RedisDsn = "redis://redis:6379/0"
-    SCRAPPER_INTERVAL_SECONDS: int = "15"
+    SCRAPPER_INTERVAL_SECONDS: int = "60"
     SCRAPPER_MAX_RETRIES: int = "3"
     SCRAPPER_RETRY_INTERVAL_SECONDS: int = 15
 
