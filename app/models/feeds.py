@@ -18,6 +18,7 @@ class Feed(Base):
     url = Column(String, nullable=False, index=True)
     description = Column(String)
     last_built_at = Column(DateTime, default=None)
+    modified_at = Column(String)
     is_update_enabled = Column(Boolean, default=True)
     created_at = Column(DateTime, nullable=False, default=func.now())
     updated_at = Column(

@@ -24,7 +24,7 @@ migration-script:
 	read MESSAGE; \
 	$(DC) run --rm app sh -c "alembic revision -m '$$MESSAGE' --autogenerate"
 
-setup-database:
+setup-db:
 	$(DC) run --rm app sh -c "alembic upgrade head"
 
 build:

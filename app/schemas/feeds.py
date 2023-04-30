@@ -16,6 +16,7 @@ class UpdateFeedSchema(FeedSchemaBase):
     title: Optional[str] = None
     description: Optional[str] = None
     last_built_at: datetime = None
+    modified_at: Optional[str] = None
 
 
 class FeedSchema(FeedSchemaBase):
@@ -23,6 +24,7 @@ class FeedSchema(FeedSchemaBase):
     title: Optional[str] = None
     description: Optional[str] = None
     last_built_at: Optional[datetime] = None
+    modified_at: Optional[str] = None
     is_update_enabled: Optional[bool]
     created_at: Optional[datetime]
 

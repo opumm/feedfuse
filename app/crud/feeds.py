@@ -51,6 +51,12 @@ async def get_feeds(
     return result.scalars().all()
 
 
+async def get_update_enabled_feeds(session: AsyncSession) -> List[Feed]:
+    query = select(Feed).where(Feed.is_update_enabled)
+    result = await session.execute(query)
+    return result.scalars().all()
+
+
 async def update_feed(
     session: AsyncSession, feed_id: int, feed_update: UpdateFeedSchema
 ) -> Optional[Feed]:
@@ -73,6 +79,19 @@ async def enable_update(session: AsyncSession, feed_id: int) -> Optional[Feed]:
         return db_feed
 
     db_feed.is_update_enabled = True
+    await session.commit()
+    await session.refresh(db_feed)
+    return db_feed
+
+
+async def pause_update(session: AsyncSession, feed_id: int) -> Optional[Feed]:
+    db_feed = await get_feed(session, feed_id)
+    if not db_feed:
+        return None
+    if not db_feed.is_update_enabled:
+        return db_feed
+
+    db_feed.is_update_enabled = False
     await session.commit()
     await session.refresh(db_feed)
     return db_feed

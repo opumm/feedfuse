@@ -7,7 +7,7 @@ authors = ["Mohammad Mohiuddin <opummjopu@gmail.com>"]
 [tool.poetry.dependencies]
 python = "^3.10"
 fastapi = "^0.95.1"
-uvicorn = "^0.21.1"
+uvicorn = "^0.22.0"
 pydantic = {extras = ["email"], version = "^1.10.7"}
 SQLAlchemy = {extras = ["asyncio"], version = "^2.0.10"}
 alembic = "^1.10.4"
@@ -15,6 +15,10 @@ passlib = {extras = ["bcrypt"], version = "^1.7.4"}
 python-jose = {extras = ["cryptography"], version = "^3.3.0"}
 python-multipart = "^0.0.6"
 asyncpg = "^0.27.0"
+asgiref = "^3.6.0"
+feedparser = "^6.0.10"
+redis = "^4.5.4"
+celery = "^5.2.7"
 
 [tool.poetry.dev-dependencies]
 black = "^23.3.0"

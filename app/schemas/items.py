@@ -1,27 +1,31 @@
 from datetime import datetime
 from enum import Enum
+from typing import Optional
 
 from pydantic import BaseModel, HttpUrl
 
 
 class ItemSchemaBase(BaseModel):
-    title: str
-    url: HttpUrl
-    guid: str
-    description: str | None = None
-    feed_id: int
-    published_at: datetime
+    title: Optional[str]
+    url: Optional[HttpUrl]
+    guid: Optional[str]
+    description: Optional[str] = None
+    feed_id: Optional[int]
+    published_at: Optional[datetime]
 
     class Config:
         orm_mode = True
 
 
 class CreateItemSchema(ItemSchemaBase):
-    pass
+    guid: str
+    feed_id: int
 
 
 class UpdateItemSchema(ItemSchemaBase):
-    pass
+    title: Optional[str] = None
+    url: Optional[HttpUrl] = None
+    description: Optional[str] = None
 
 
 class ItemSchema(ItemSchemaBase):
