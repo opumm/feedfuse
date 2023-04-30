@@ -6,13 +6,13 @@ from celery.exceptions import MaxRetriesExceededError
 from feedparser import FeedParserDict
 
 from app.core.config import settings
-from app.schemas.feeds import UpdateFeedSchema
 from app.crawler.utils import (
     parse_datetime_string,
     pause_feed_update,
     update_feed_in_db,
 )
 from app.crawler.worker import worker
+from app.schemas.feeds import UpdateFeedSchema
 
 
 def get_feed_details(url, last_modified=None) -> FeedParserDict | None:

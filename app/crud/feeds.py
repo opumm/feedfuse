@@ -43,9 +43,7 @@ async def get_feed_by_url(session: AsyncSession, url: str) -> Optional[Feed]:
     return result.scalar_one_or_none()
 
 
-async def get_feeds(
-    session: AsyncSession
-) -> List[Feed]:
+async def get_feeds(session: AsyncSession) -> List[Feed]:
     query = select(Feed)
     result = await session.execute(query)
     return result.scalars().all()

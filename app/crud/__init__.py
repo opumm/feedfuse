@@ -6,7 +6,7 @@ from .items import (
     get_items_by_feed,
     update_item,
 )
-from .subscription import get_subscription_by_user_and_feed
+from .subscription import get_subscription_by_user_and_feed, unsubscribe
 from .users import (
     authenticate,
     create_user,

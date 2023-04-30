@@ -55,3 +55,18 @@ async def create_subscription(
     await session.commit()
     await session.refresh(db_subscription)
     return db_subscription
+
+
+async def unsubscribe(
+    session: AsyncSession, feed_id: int, user_id: int
+) -> Optional[Subscription]:
+    existing_subscription = await get_subscription_by_user_and_feed(
+        session, feed_id, user_id
+    )
+    if existing_subscription:
+        if existing_subscription.is_active:
+            setattr(existing_subscription, "is_active", False)
+            await session.commit()
+            await session.refresh(existing_subscription)
+
+        return existing_subscription

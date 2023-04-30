@@ -3,7 +3,6 @@ import logging
 from asgiref.sync import async_to_sync
 
 from app.core.config import settings
-from app.schemas.items import CreateItemSchema, UpdateItemSchema
 from app.crawler.utils import (
     create_item_in_db,
     get_item_from_db,
@@ -11,6 +10,7 @@ from app.crawler.utils import (
     update_item_in_db,
 )
 from app.crawler.worker import worker
+from app.schemas.items import CreateItemSchema, UpdateItemSchema
 
 
 @worker.task(

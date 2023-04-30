@@ -1,7 +1,8 @@
+import logging
 from datetime import datetime
 from typing import List
 
-from fastapi import APIRouter, Depends, status, HTTPException
+from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app import crud
@@ -21,8 +22,8 @@ router = APIRouter()
     status_code=status.HTTP_200_OK,
 )
 async def get_feeds(
-        session: AsyncSession = Depends(get_async_session),
-        current_user: DBUser = Depends(get_current_user),
+    session: AsyncSession = Depends(get_async_session),
+    current_user: DBUser = Depends(get_current_user),
 ) -> List[FeedSchema]:
     """
     Retrieve all feeds that the current user has subscribed to.
@@ -43,9 +44,9 @@ async def get_feeds(
     status_code=status.HTTP_201_CREATED,
 )
 async def create_feed(
-        feed: CreateFeedSchema,
-        session: AsyncSession = Depends(get_async_session),
-        current_user: DBUser = Depends(get_current_user),
+    feed: CreateFeedSchema,
+    session: AsyncSession = Depends(get_async_session),
+    current_user: DBUser = Depends(get_current_user),
 ) -> FeedSchema:
     """
     Create a new RSS feed or subscribe to an existing one.
@@ -91,8 +92,7 @@ async def create_feed(
     status_code=status.HTTP_200_OK,
 )
 async def get_feed_by_id(
-        feed_id: int,
-        session: AsyncSession = Depends(get_async_session)
+    feed_id: int, session: AsyncSession = Depends(get_async_session)
 ) -> FeedSchema:
     """
     Retrieve a specific feed by its ID.
@@ -121,16 +121,31 @@ async def get_feed_by_id(
     summary="Unsubscribe from a feed by its ID",
     status_code=status.HTTP_204_NO_CONTENT,
 )
-async def unsubscribe_feed(feed_id: int) -> None:
+async def unsubscribe_feed(
+    feed_id: int,
+    session: AsyncSession = Depends(get_async_session),
+    current_user: DBUser = Depends(get_current_user),
+) -> None:
     """
     Unsubscribe from a feed by its ID.
 
     Args:
         feed_id: The ID of the feed to be unsubscribed from.
+        :param feed_id:
+        :param current_user:
+        :param session:
     """
+    existing_subscription = await crud.subscription.get_subscription_by_user_and_feed(
+        session, feed_id, current_user.id
+    )
+    if not existing_subscription:
+        raise HTTPException(
+            status_code=404,
+            detail="No subscription found",
+        )
+    await crud.subscription.unsubscribe(session, feed_id, current_user.id)
 
-    # TODO: Implement the unsubscribe logic
-    pass
+    return
 
 
 @router.put(
