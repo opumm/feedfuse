@@ -15,7 +15,7 @@ router = APIRouter()
 
 @router.get(
     path="/",
-    name="item_list",
+    name="get_items",
     summary="Retrieve a list of all items from feeds subscribed by the current user",
     response_model=List[ItemSchema],
     status_code=status.HTTP_200_OK,
@@ -111,6 +111,12 @@ async def update_item(
         raise HTTPException(
             status_code=404,
             detail="Item does not exist in the system",
+        )
+    subscription = await crud.subscription.get_subscription_by_user_and_feed(session, item.feed_id, current_user.id)
+    if not subscription:
+        raise HTTPException(
+            status_code=404,
+            detail=f"You dont have subscription for the feed {item.feed_id}",
         )
 
     await crud.read_status.update_item_read_status(

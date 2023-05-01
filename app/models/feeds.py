@@ -25,5 +25,7 @@ class Feed(Base):
         DateTime, nullable=False, default=func.now(), onupdate=func.now()
     )
 
-    item = relationship("Item",  backref="feed",  cascade="all, delete-orphan")
-    subscription = relationship("Subscription", backref="feed",  cascade="all, delete-orphan")
+    item = relationship("Item", backref="feed", cascade="all, delete-orphan")
+    subscription = relationship(
+        "Subscription", backref="feed", cascade="all, delete-orphan"
+    )

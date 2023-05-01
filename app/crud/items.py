@@ -1,7 +1,9 @@
+import logging
 from typing import List, Optional
 
-from sqlalchemy import or_, select
+from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
+from sqlalchemy.sql.functions import coalesce
 
 from app.models.items import Item
 from app.models.read_status import ReadStatus
@@ -47,15 +49,17 @@ async def get_items(
 
     if query_params.status:
         read_item_stmt = (
-            select(ReadStatus.item_id)
-            .where(ReadStatus.user_id == user_id, ReadStatus.is_read)
-            .subquery()
+            select(ReadStatus.item_id).where(ReadStatus.user_id == user_id, ReadStatus.is_read)
         )
-        if query_params.status == ItemQueryParams.status.read:
-            query = query.filter(Item.id == read_item_stmt.c.item_id)
+        sub_read_item_stmt = read_item_stmt.subquery()
+        if query_params.status == 'read':
+            query = query.filter(Item.id == sub_read_item_stmt.c.item_id)
 
-        if query_params.status == ItemQueryParams.status.unread:
-            query = query.filter(Item.id != read_item_stmt.c.item_id)
+        if query_params.status == 'unread':
+            result = await session.execute(read_item_stmt)
+            read_items = result.scalars().all()
+            if len(read_items):
+                query = query.filter(Item.id != sub_read_item_stmt.c.item_id)
 
     if query_params.order == "asc":
         query = query.order_by(Item.updated_at.asc())

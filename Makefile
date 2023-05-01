@@ -54,4 +54,4 @@ style:
 	flake8 .
 
 test-unit:
-	$(CLI) -m pytest -v --cov=./ --cov-report=xml --junitxml=pytests.xml app/tests/
+	$(CLI) -m pytest -v --cov=./ --cov-report=xml --junitxml=pytests.xml app/tests

@@ -25,8 +25,12 @@ class User(Base):
         DateTime, nullable=False, default=func.now(), onupdate=func.now()
     )
 
-    subscription = relationship("Subscription", backref="user", cascade="all, delete-orphan")
-    user_read_status = relationship("ReadStatus", backref="user", cascade="all, delete-orphan")
+    subscription = relationship(
+        "Subscription", backref="user", cascade="all, delete-orphan"
+    )
+    user_read_status = relationship(
+        "ReadStatus", backref="user", cascade="all, delete-orphan"
+    )
 
     @property
     def password(self) -> None:

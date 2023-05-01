@@ -19,10 +19,14 @@ class Item(Base):
     guid = Column(String, nullable=False, index=True)
     description = Column(String, default=None)
     published_at = Column(DateTime)
-    feed_id = Column(Integer, ForeignKey("feed.id", onupdate="CASCADE", ondelete="CASCADE"))
+    feed_id = Column(
+        Integer, ForeignKey("feed.id", onupdate="CASCADE", ondelete="CASCADE")
+    )
     created_at = Column(DateTime, nullable=False, default=func.now())
     updated_at = Column(
         DateTime, nullable=False, default=func.now(), onupdate=func.now()
     )
 
-    read_status = relationship("ReadStatus", backref="item", cascade="all, delete-orphan")
+    read_status = relationship(
+        "ReadStatus", backref="item", cascade="all, delete-orphan"
+    )

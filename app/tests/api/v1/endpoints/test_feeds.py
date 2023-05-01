@@ -10,6 +10,7 @@ from app import crud
 url = "https://www.example.com/feed"
 feed = CreateFeedSchema(url=url)
 
+
 @pytest.mark.asyncio
 async def test_create_feed(client: AsyncClient, default_user_headers):
     # create feed
@@ -22,7 +23,9 @@ async def test_create_feed(client: AsyncClient, default_user_headers):
 
 
 @pytest.mark.asyncio
-async def test_create_feed_duplicate(client: AsyncClient, default_user_headers, session: AsyncSession):
+async def test_create_feed_duplicate(
+    client: AsyncClient, default_user_headers, session: AsyncSession
+):
     # Create a feed.
     response = await client.post(
         app.url_path_for("create_feed"), json=feed.dict(), headers=default_user_headers
@@ -61,7 +64,9 @@ async def test_get_feeds(client: AsyncClient, default_user_headers):
 
 
 @pytest.mark.asyncio
-async def test_get_feed_by_id(client: AsyncClient, default_user_headers, session: AsyncSession):
+async def test_get_feed_by_id(
+    client: AsyncClient, default_user_headers, session: AsyncSession
+):
     # create feed
     response = await client.post(
         app.url_path_for("create_feed"), json=feed.dict(), headers=default_user_headers
@@ -72,7 +77,8 @@ async def test_get_feed_by_id(client: AsyncClient, default_user_headers, session
 
     # get feed by id
     response = await client.get(
-        app.url_path_for('get_feed_by_id', feed_id=feed_id), headers=default_user_headers
+        app.url_path_for("get_feed_by_id", feed_id=feed_id),
+        headers=default_user_headers,
     )
     assert response.status_code == 200
     response_data = response.json()
@@ -80,7 +86,9 @@ async def test_get_feed_by_id(client: AsyncClient, default_user_headers, session
 
 
 @pytest.mark.asyncio
-async def test_unsubscribe_feeds(client: AsyncClient, default_user_headers, session: AsyncSession):
+async def test_unsubscribe_feeds(
+    client: AsyncClient, default_user_headers, session: AsyncSession
+):
     # Create a feed.
     response = await client.post(
         app.url_path_for("create_feed"), json=feed.dict(), headers=default_user_headers
@@ -101,7 +109,8 @@ async def test_unsubscribe_feeds(client: AsyncClient, default_user_headers, sess
 
     # Unsubscribe feed
     response = await client.delete(
-        app.url_path_for("unsubscribe_feed", feed_id=feed_id), headers=default_user_headers
+        app.url_path_for("unsubscribe_feed", feed_id=feed_id),
+        headers=default_user_headers,
     )
     assert response.status_code == 204
 
@@ -117,7 +126,9 @@ async def test_unsubscribe_feeds(client: AsyncClient, default_user_headers, sess
 
 
 @pytest.mark.asyncio
-async def test_get_subscribed_feeds(client: AsyncClient, default_user_headers, session: AsyncSession):
+async def test_get_subscribed_feeds(
+    client: AsyncClient, default_user_headers, session: AsyncSession
+):
     # Create a feed.
     url_1 = "https://www.example.com/feed_1"
     _feed = CreateFeedSchema(url=url_1)
@@ -148,7 +159,8 @@ async def test_get_subscribed_feeds(client: AsyncClient, default_user_headers, s
 
     # Unsubscribe feed
     response = await client.delete(
-        app.url_path_for("unsubscribe_feed", feed_id=feed_id), headers=default_user_headers
+        app.url_path_for("unsubscribe_feed", feed_id=feed_id),
+        headers=default_user_headers,
     )
     assert response.status_code == 204
 
@@ -161,4 +173,3 @@ async def test_get_subscribed_feeds(client: AsyncClient, default_user_headers, s
     # Check that we are getting only subscribed feed.
     response_data = response.json()
     assert len(response_data) == 1
-
