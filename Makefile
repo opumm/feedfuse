@@ -4,7 +4,7 @@
 ### --------------------------------------------------------------------------------------------------------------------
 
 DC := docker compose
-CLI := $(DC) run --rm app sh -c
+CLI := $(DC) run --rm cli
 
 # Other config
 NO_COLOR=\033[0m
@@ -52,3 +52,6 @@ style:
 	black .
 	isort .
 	flake8 .
+
+test-unit:
+	$(CLI) -m pytest -v --cov=./ --cov-report=xml --junitxml=pytests.xml app/tests/

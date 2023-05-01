@@ -1,9 +1,3 @@
-from typing import Any
+from sqlalchemy.orm import declarative_base
 
-from sqlalchemy.ext.declarative import as_declarative
-
-
-@as_declarative()
-class Base:
-    id: Any
-    __name__: str
+Base = declarative_base()
