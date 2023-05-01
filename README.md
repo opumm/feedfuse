@@ -1,5 +1,40 @@
 # FeedFuse - Another RSS feed manager
 
+### Setup
+
+- Download and unzip the project.
+- Build Docker images.
+  ```sh
+  make build
+  ```
+- Strat docker container to initialize the project.
+  ```sh
+  make run
+  ```
+- Create migration script.
+  ```sh
+  make migrate
+  ```
+- Initialize the db.
+  ```sh
+  make setup-db
+  ```
+- Start API container.
+  ```sh
+  docker compose up -d app
+  ```
+- Migrate database.
+  ```sh
+  make migrate
+  ````
+- Start Scheduler.
+  ```sh
+  docker compose up -d scheduler
+  ```
+- Start Workers.
+  ```sh
+  docker compose up -d worker
+
 ## Database design
 
 Database tables for the RSS feed service:

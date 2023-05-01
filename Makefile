@@ -19,7 +19,8 @@ WARN_COLOR=\033[33;01m
 ### --------------------------------------------------------------------------------------------------------------------
 .PHONY: migration-script setup-database build run status logs stop down clean
 
-migration-script:
+migrate:
+	$(DC) up -d app database
 	@echo "revision name: "; \
 	read MESSAGE; \
 	$(DC) run --rm app sh -c "alembic revision -m '$$MESSAGE' --autogenerate"
@@ -50,8 +51,6 @@ clean:
 
 style:
 	black .
-	isort .
-	flake8 .
 
 test-unit:
 	$(CLI) -m pytest -v --cov=./ --cov-report=xml --junitxml=pytests.xml app/tests
