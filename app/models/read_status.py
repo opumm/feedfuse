@@ -15,8 +15,6 @@ class ReadStatus(Base):
 
     id = Column(Integer, primary_key=True, index=True)
     is_read = Column(Boolean, default=False)
-    user_id = Column(Integer, ForeignKey("user.id"))
-    item_id = Column(Integer, ForeignKey("item.id"))
+    user_id = Column(Integer, ForeignKey("user.id", onupdate="CASCADE", ondelete="CASCADE"))
+    item_id = Column(Integer, ForeignKey("item.id", onupdate="CASCADE", ondelete="CASCADE"))
 
-    read_status_user = relationship("User", back_populates="user_read_status")
-    read_status_item = relationship("Item", back_populates="item_read_status")
