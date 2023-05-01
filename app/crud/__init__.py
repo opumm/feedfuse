@@ -6,6 +6,7 @@ from .items import (
     get_items_by_feed,
     update_item,
 )
+from .read_status import update_item_read_status
 from .subscription import get_subscription_by_user_and_feed, unsubscribe
 from .users import (
     authenticate,

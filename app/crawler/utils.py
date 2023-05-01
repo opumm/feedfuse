@@ -9,9 +9,13 @@ from app.schemas.items import CreateItemSchema, ItemSchema, UpdateItemSchema
 
 def parse_datetime_string(datetime_str):
     try:
-        return datetime.strptime(datetime_str, "%a, %d %b %Y %H:%M:%S %Z")
+        return datetime.strptime(datetime_str, "%a, %d %b %Y %H:%M:%S %Z").replace(
+            tzinfo=None
+        )
     except ValueError:
-        return datetime.strptime(datetime_str, "%a, %d %b %Y %H:%M:%S %z")
+        return datetime.strptime(datetime_str, "%a, %d %b %Y %H:%M:%S %z").replace(
+            tzinfo=None
+        )
 
 
 async def fetch_feed() -> List[FeedSchema]:

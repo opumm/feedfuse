@@ -1,10 +1,12 @@
 from typing import List, Optional
 
-from sqlalchemy import select
+from sqlalchemy import or_, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.models.items import Item
-from app.schemas.items import CreateItemSchema, UpdateItemSchema
+from app.models.read_status import ReadStatus
+from app.models.subscription import Subscription
+from app.schemas.items import CreateItemSchema, ItemQueryParams, UpdateItemSchema
 
 
 async def create_item(session: AsyncSession, item: CreateItemSchema) -> Item:
@@ -21,6 +23,49 @@ async def get_item(session: AsyncSession, item_id: int) -> Optional[Item]:
     return result.scalar_one_or_none()
 
 
+async def get_items(
+    session: AsyncSession, user_id: int, query_params: ItemQueryParams
+) -> Optional[Item]:
+    if query_params.feed_id:
+        subscribed_feed_stmt = (
+            select(Subscription.feed_id)
+            .where(
+                Subscription.user_id == user_id,
+                Subscription.is_active,
+                Subscription.feed_id == query_params.feed_id,
+            )
+            .subquery()
+        )
+    else:
+        subscribed_feed_stmt = (
+            select(Subscription.feed_id)
+            .where(Subscription.user_id == user_id, Subscription.is_active)
+            .subquery()
+        )
+
+    query = select(Item).where(Item.feed_id == subscribed_feed_stmt.c.feed_id)
+
+    if query_params.status:
+        read_item_stmt = (
+            select(ReadStatus.item_id)
+            .where(ReadStatus.user_id == user_id, ReadStatus.is_read)
+            .subquery()
+        )
+        if query_params.status == ItemQueryParams.status.read:
+            query = query.filter(Item.id == read_item_stmt.c.item_id)
+
+        if query_params.status == ItemQueryParams.status.unread:
+            query = query.filter(Item.id != read_item_stmt.c.item_id)
+
+    if query_params.order == "asc":
+        query = query.order_by(Item.updated_at.asc())
+    else:
+        query = query.order_by(Item.updated_at.desc())
+
+    result = await session.execute(query)
+    return result.scalars().all()
+
+
 async def get_item_by_guid(session: AsyncSession, guid: str) -> Optional[Item]:
     query = select(Item).where(Item.guid == guid)
     result = await session.execute(query)
@@ -34,7 +79,8 @@ async def update_item(
     if not db_item:
         return None
     for field, value in item:
-        setattr(db_item, field, value)
+        if value:
+            setattr(db_item, field, value)
     await session.commit()
     await session.refresh(db_item)
     return db_item

@@ -1,8 +1,13 @@
 from datetime import datetime
 from typing import List
 
-from fastapi import APIRouter, Depends, status
+from fastapi import APIRouter, Depends, HTTPException, status
+from sqlalchemy.ext.asyncio import AsyncSession
 
+from app import crud
+from app.api.deps import get_current_user
+from app.db.session import get_async_session
+from app.models.users import User as DBUser
 from app.schemas import ItemQueryParams, ItemSchema
 
 router = APIRouter()
@@ -15,7 +20,11 @@ router = APIRouter()
     response_model=List[ItemSchema],
     status_code=status.HTTP_200_OK,
 )
-async def get_items(query: ItemQueryParams = Depends()) -> List[ItemSchema]:
+async def get_items(
+    query_params: ItemQueryParams = Depends(),
+    session: AsyncSession = Depends(get_async_session),
+    current_user: DBUser = Depends(get_current_user),
+) -> List[ItemSchema]:
     """
     Get a list of all items from feeds subscribed by the current user.
 
@@ -24,20 +33,18 @@ async def get_items(query: ItemQueryParams = Depends()) -> List[ItemSchema]:
 
     Returns:
         A list of ItemSchema objects containing information about each item.
+        :param query_params:
+        :param current_user:
+        :param session:
     """
 
-    # TODO: Implement the logic to retrieve the items list from subscribed feeds
-    return [
-        ItemSchema(
-            id=1,
-            title="New article",
-            url="https://example.com/article",
-            guid="12345",
-            description="This is a new article",
-            feed_id=1,
-            published_at=datetime.now(),
+    items = await crud.items.get_items(session, current_user.id, query_params)
+    if not items:
+        raise HTTPException(
+            status_code=404,
+            detail="No item exist in the system",
         )
-    ]
+    return [ItemSchema.from_orm(item) for item in items]
 
 
 @router.get(
@@ -47,7 +54,9 @@ async def get_items(query: ItemQueryParams = Depends()) -> List[ItemSchema]:
     response_model=ItemSchema,
     status_code=status.HTTP_200_OK,
 )
-async def get_item_by_id(item_id: int) -> ItemSchema:
+async def get_item_by_id(
+    item_id: int, session: AsyncSession = Depends(get_async_session)
+) -> ItemSchema:
     """
     Get the item with the specified ID.
 
@@ -56,17 +65,17 @@ async def get_item_by_id(item_id: int) -> ItemSchema:
 
     Returns:
         An ItemSchema object containing information about the retrieved item.
+        :param item_id:
+        :param session:
     """
+    item = await crud.items.get_item(session, item_id)
+    if not item:
+        raise HTTPException(
+            status_code=404,
+            detail="Item does not exist in the system",
+        )
 
-    return ItemSchema(
-        id=item_id,
-        title="New article",
-        url="https://example.com/article",
-        guid="12345",
-        description="This is a new article",
-        feed_id=1,
-        published_at=datetime.now(),
-    )
+    return ItemSchema.from_orm(item)
 
 
 @router.post(
@@ -76,7 +85,12 @@ async def get_item_by_id(item_id: int) -> ItemSchema:
     response_model=ItemSchema,
     status_code=status.HTTP_200_OK,
 )
-async def update_item(item_id: int, update_read_status: str) -> ItemSchema:
+async def update_item(
+    item_id: int,
+    mark_as_read: bool,
+    session: AsyncSession = Depends(get_async_session),
+    current_user: DBUser = Depends(get_current_user),
+) -> ItemSchema:
     """
     Update the read status of an item
 
@@ -86,16 +100,21 @@ async def update_item(item_id: int, update_read_status: str) -> ItemSchema:
 
     Returns:
         An ItemSchema object containing the updated item information.
+        :param item_id:
+        :param current_user:
+        :param session:
+        :param mark_as_read:
     """
 
-    # TODO: Implement the update logic and parameters
+    item = await crud.items.get_item(session, item_id)
+    if not item:
+        raise HTTPException(
+            status_code=404,
+            detail="Item does not exist in the system",
+        )
 
-    return ItemSchema(
-        id=item_id,
-        title="New article",
-        url="https://example.com/article",
-        guid="12345",
-        description="This is a new article",
-        feed_id=1,
-        published_at=datetime.now(),
+    await crud.read_status.update_item_read_status(
+        session, item_id, current_user.id, mark_as_read
     )
+
+    return ItemSchema.from_orm(item)

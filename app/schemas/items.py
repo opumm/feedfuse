@@ -4,6 +4,8 @@ from typing import Optional
 
 from pydantic import BaseModel, HttpUrl
 
+from app.schemas.common_query_params import CommonQueryOrderEnum
+
 
 class ItemSchemaBase(BaseModel):
     title: Optional[str]
@@ -12,6 +14,11 @@ class ItemSchemaBase(BaseModel):
     description: Optional[str] = None
     feed_id: Optional[int]
     published_at: Optional[datetime]
+
+
+class ItemSchema(ItemSchemaBase):
+    id: int
+    updated_at: datetime
 
     class Config:
         orm_mode = True
@@ -28,31 +35,23 @@ class UpdateItemSchema(ItemSchemaBase):
     description: Optional[str] = None
 
 
-class ItemSchema(ItemSchemaBase):
-    id: int
-
-
 class ItemQuerySortEnum(str, Enum):
-    published_at = "published_at"
+    updated_at = "updated_at"
 
 
-class CommonQueryOrderEnum(str, Enum):
-    asc = "asc"
-    desc = "desc"
+class ItemQueryReadStatusEnum(str, Enum):
+    read: str = "read"
+    unread: str = "unread"
 
 
-class CommonQueryParamsModel(BaseModel):
-    order: CommonQueryOrderEnum | None = CommonQueryOrderEnum.asc
-    sort: str | None
+class ItemQueryParams(BaseModel):
+    feed_id: Optional[int]
+    status: Optional[ItemQueryReadStatusEnum]
+    sort: Optional[ItemQuerySortEnum] = ItemQuerySortEnum.updated_at
+    order: Optional[CommonQueryOrderEnum] = CommonQueryOrderEnum.desc
 
     class Config:
         fields = {
             "order": {"exclude": True},
             "sort": {"exclude": True},
         }
-
-
-class ItemQueryParams(CommonQueryParamsModel):
-    feed_id: int | None = None
-    is_marked_read: bool | None = None
-    sort: ItemQuerySortEnum | None = None
