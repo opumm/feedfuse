@@ -14,7 +14,7 @@ from app.schemas.items import CreateItemSchema, UpdateItemSchema
 
 
 @worker.task(
-    bind=True, name="update_feed_item", max_retries=settings.SCRAPPER_MAX_RETRIES
+    bind=True, name="update_feed_item", max_retries=settings.WORKER_MAX_RETRIES
 )
 def update_feed_item(self, feed_id: int, item: dict):
     """Entry Loader - Insert Feed Entry into the Database.
@@ -53,4 +53,4 @@ def update_feed_item(self, feed_id: int, item: dict):
 
     except Exception as exc:
         logging.error("failed to run update_feed_item task: %s", str(exc))
-        raise self.retry(exc=exc, countdown=settings.SCRAPPER_RETRY_INTERVAL_SECONDS)
+        raise self.retry(exc=exc, countdown=settings.WORKER_RETRY_INTERVAL_SECONDS)

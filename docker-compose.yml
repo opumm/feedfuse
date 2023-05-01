@@ -29,25 +29,32 @@ services:
 
   scheduler:
     image: feedfuse:latest
-    command: "celery --app app.crawler.worker beat --loglevel=info"
+    command: "celery --app app.crawler.worker beat --loglevel DEBUG"
     env_file: .env
     volumes:
       - ".:/src"
     depends_on:
-      - database
-      - rabbitmq
-      - redis
+      worker:
+        condition: service_healthy
 
   worker:
     image: feedfuse:latest
-    command: "celery --app app.crawler.worker worker -c 1 --loglevel=info"
+    command: "celery --app app.crawler.worker worker -c 1 --loglevel DEBUG"
     env_file: .env
     volumes:
       - ".:/src"
+    healthcheck:
+      test: celery --app app.crawler.worker status
+      interval: 10s
+      timeout: 10s
+      retries: 3
     depends_on:
-      - database
-      - rabbitmq
-      - redis
+      database:
+        condition: service_healthy
+      rabbitmq:
+        condition: service_healthy
+      redis:
+        condition: service_started
 
   rabbitmq:
     image: rabbitmq:management-alpine
@@ -56,6 +63,11 @@ services:
       - "15672:15672"
     volumes:
       - rabbitmq-data:/var/lib/rabbitmq
+    healthcheck:
+      test: rabbitmq-diagnostics -q ping
+      interval: 10s
+      timeout: 10s
+      retries: 3
     environment:
       RABBITMQ_DEFAULT_USER: guest
       RABBITMQ_DEFAULT_PASS: guest

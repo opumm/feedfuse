@@ -30,18 +30,11 @@ class Settings(BaseSettings):
             path=f"/{values.get('POSTGRES_DB') or ''}",
         )
 
-    TASKIQ_BROKER_URL: AmqpDsn
-    TASKIQ_RESULT_BACKEND: str
-    CRAWLER_MAX_RETRIES: int = 3
-    CRAWLER_RETRY_INTERVAL_SECONDS: int = 10
-
-    WORKER_BROKER_DSN: AmqpDsn = "amqp://guest:guest@rabbitmq:5672"
-    WORKER_BACKEND_DSN: RedisDsn = "redis://redis:6379/0"
-    SCRAPPER_INTERVAL_SECONDS: int = "60"
-    SCRAPPER_MAX_RETRIES: int = "3"
-    SCRAPPER_RETRY_INTERVAL_SECONDS: int = 15
-
-    CRAWLER_SCHEDULER_CRON: str = "* * * * *"  # Runs every minute
+    CELERY_BROKER_URL: AmqpDsn
+    CELERY_RESULT_BACKEND: RedisDsn
+    WORKER_INTERVAL_SECONDS: int = 30
+    WORKER_MAX_RETRIES: int = 3
+    WORKER_RETRY_INTERVAL_SECONDS: int = 10
 
     FIRST_USER: EmailStr
     FIRST_USER_PASSWORD: str

@@ -46,7 +46,7 @@ def setup_periodic_tasks(sender, **kwargs):
     up by the Feed parser worker.
 
     """
-    interval = settings.SCRAPPER_INTERVAL_SECONDS
+    interval = settings.WORKER_INTERVAL_SECONDS
     sender.add_periodic_task(
         interval,
         schedule_update_feed.s(),

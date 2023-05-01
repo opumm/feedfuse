@@ -4,8 +4,8 @@ from app.core.config import settings
 
 worker = Celery(
     "app.crawler",
-    broker=settings.WORKER_BROKER_DSN,
-    backend=settings.WORKER_BACKEND_DSN,
+    broker=settings.CELERY_BROKER_URL,
+    backend=settings.CELERY_RESULT_BACKEND,
 )
 
 worker.autodiscover_tasks(

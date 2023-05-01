@@ -32,7 +32,7 @@ def get_feed_details(url, last_modified=None) -> FeedParserDict | None:
         return feed
 
 
-@worker.task(bind=True, name="update_feed", max_retries=settings.SCRAPPER_MAX_RETRIES)
+@worker.task(bind=True, name="update_feed", max_retries=settings.WORKER_MAX_RETRIES)
 def update_feed(self, feed_id: int, url: str, modified_at: str):
     """Feed Parser - Update Feed and Send Task to Update Feed Entry.
 
@@ -54,7 +54,7 @@ def update_feed(self, feed_id: int, url: str, modified_at: str):
 
     """
     try:
-        if self.request.retries >= settings.SCRAPPER_MAX_RETRIES:
+        if self.request.retries >= settings.WORKER_MAX_RETRIES:
             raise MaxRetriesExceededError
 
         remote_feed = get_feed_details(url, modified_at)
@@ -74,4 +74,4 @@ def update_feed(self, feed_id: int, url: str, modified_at: str):
 
     except Exception as exc:
         logging.error("failed to run update_feed task: %s", str(exc))
-        raise self.retry(exc=exc, countdown=settings.SCRAPPER_RETRY_INTERVAL_SECONDS)
+        raise self.retry(exc=exc, countdown=settings.WORKER_RETRY_INTERVAL_SECONDS)

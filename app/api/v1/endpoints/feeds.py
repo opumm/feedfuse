@@ -7,6 +7,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from app import crud
 from app.api.deps import get_current_user
+from app.crawler.worker import worker
 from app.db.session import get_async_session
 from app.models.users import User as DBUser
 from app.schemas import CreateFeedSchema, FeedSchema
@@ -155,7 +156,11 @@ async def unsubscribe_feed(
     summary="Enable auto-update and trigger a force update",
     status_code=status.HTTP_202_ACCEPTED,
 )
-async def force_update_feed(feed_id: int) -> FeedSchema:
+async def force_update_feed(
+    feed_id: int,
+    session: AsyncSession = Depends(get_async_session),
+    current_user: DBUser = Depends(get_current_user),
+) -> FeedSchema:
     """
     Enable auto-update and trigger a force update of the specified feed.
 
@@ -164,14 +169,28 @@ async def force_update_feed(feed_id: int) -> FeedSchema:
 
     Returns:
         A FeedSchema object containing the url and title of the updated feed.
+        :param feed_id:
+        :param current_user:
+        :param session:
     """
 
-    # TODO: Implement the force update logic
-    return FeedSchema(
-        id=1,
-        url="https://example.com/rss",
-        title="New RSS feed",
-        description="A new RSS feed for testing purposes.",
-        is_update_enabled=True,
-        created_at=datetime.now(),
-    )
+    feed = await crud.feeds.get_feed(session, feed_id)
+    if not feed:
+        raise HTTPException(
+            status_code=404,
+            detail="No feed found",
+        )
+
+    if not feed.is_update_enabled:
+        feed = await crud.feeds.enable_update(session, feed_id)
+
+        worker.send_task(
+            "update_feed",
+            kwargs={
+                "feed_id": feed.id,
+                "url": feed.url,
+                "modified_at": feed.modified_at,
+            },
+        )
+
+    return FeedSchema.from_orm(feed)
