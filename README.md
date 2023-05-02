@@ -1,41 +1,50 @@
 # FeedFuse - Another RSS feed manager
 
+The application is an RSS scraper that extracts RSS feeds and stores them in a database. Users can manage the feeds with REST API.
+
 ### Setup
 
-- Download and unzip the project.
-- Build Docker images.
-  ```sh
-  make build
-  ```
-- Strat docker container to initialize the project.
-  ```sh
-  make run
-  ```
-- Create migration script.
-  ```sh
-  make migrate
-  ```
-- Initialize the db.
-  ```sh
-  make setup-db
-  ```
-- Start API container.
-  ```sh
-  docker compose up -d app
-  ```
-- Migrate database.
-  ```sh
-  make migrate
-  ````
-- Start Scheduler.
-  ```sh
-  docker compose up -d scheduler
-  ```
-- Start Workers.
-  ```sh
-  docker compose up -d worker
+1. Download and unzip the project.
+2. Make sure you have Docker installed.
+3. Build the Docker images by running the following command in your terminal:
+   ```
+   make build
+   ```
+4. Initialize the database by running the following command:
+   ```
+   make setup-db
+   ```
+5. Start the Docker containers by running the following command:
+   ```
+   make run
+   ```
+   This will start the web application and the worker processes. 
 
-## Database design
+Once the containers are up and running, you can access the API docs in `Swagger UI` by opening a web browser and navigating to `http://localhost:8000/docs`.
+
+
+### System Design Diagram
+
+This is a solution that allows users to create, subscribe, and unsubscribe from RSS feeds through an API. The backend is based on FastAPI and uses a PostgreSQL database to store user and feed information. A distributed background task manager periodically fetches and processes feed information asynchronously. In case of worker failure, a backoff mechanism prevents updates for a certain period of time, after which users can request an immediate update.
+
+The application should support the following feeds:
+
+- http://www.nu.nl/rss/Algemeen
+- https://feeds.feedburner.com/tweakers/mixed
+
+Users of the API should be able to:
+
+- Follow and unfollow multiple feeds
+- List all feeds registered by them
+- List feed items belonging to one feed
+- Mark items as read
+- Filter read/unread feed items per feed and globally, ordered by the date of the last update
+- Force a feed update
+
+
+![](./docs/feedfuse.png)
+
+### Database design
 
 Database tables for the RSS feed service:
 
@@ -71,6 +80,7 @@ Table name: `feed`
 | title             | string    | not null     | Title of the feed                                        |
 | url               | string    | not null     | URL of the feed                                          |
 | description       | string    | not null     | Description of the feed                                  |
+| modified_at       | string    | default null | Header from RSS feed to reduce API calls                 |
 | last_built_at     | datetime  | default null | Timestamp of the last time the feed was built            |
 | is_update_enabled | boolean   | default true | Flag indicating whether updates are enabled for the feed |
 | created_at        | datetime  | not null     | Timestamp of when the feed was created                   |
@@ -108,4 +118,12 @@ This schema includes the following:
 - **Item**: table to store items, including the item id, feed id, title, url, guid, description, and publish date.
 - **ReadStatus**: table to store read status of items, including user id, item id, and a flag indicating whether the item has been read or not.
 
+### Improvement Scopes
 
+There are several areas of improvement that need attention:
+
+**Caching:** No caching has been implemented yet.
+
+**Testing:** There is a lack of worker tests, and only integration tests have been performed.
+
+**AsyncIO:** While the rest of the project uses async/await, the distributed task manager Celery does not support async. To work around this issue, boilerplate code has been written, but it may need further optimization.

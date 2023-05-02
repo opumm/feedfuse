@@ -26,6 +26,7 @@ migrate:
 	$(DC) run --rm app sh -c "alembic revision -m '$$MESSAGE' --autogenerate"
 
 setup-db:
+	$(DC) up -d database
 	$(DC) run --rm app sh -c "alembic upgrade head"
 
 build:
